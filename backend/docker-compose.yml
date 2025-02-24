@@ -1,0 +1,43 @@
+services:
+  crdb:
+    image: cockroachdb/cockroach:latest
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    command: start-single-node --insecure
+    volumes:
+      - "${PWD}/cockroach-data:/cockroach/cockroach-data"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      COCKROACH_DATABASE: stocksdb
+
+  backend:
+    restart: unless-stopped
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT:-8000}
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    develop:
+      watch:
+        - action: sync
+          path: ./
+          target: /app/backend
+          ignore:
+            - tmp/
+            - .git/
+            - .air.toml
+            - .gitignore
+            - .dockerignore
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    depends_on:
+      crdb:
+        condition: service_healthy
