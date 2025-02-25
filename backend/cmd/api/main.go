@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"stockapi/internal/application"
-	"stockapi/internal/application/services"
-	"stockapi/internal/domain/analysis"
 	"stockapi/internal/infrastructure/api"
 	"stockapi/internal/infrastructure/config"
 	"stockapi/internal/infrastructure/external/stockapi"
@@ -38,14 +36,13 @@ func main() {
 
 	// Initialize repositories and clients with logger
 	stockRepo, err := cockroach.NewStockRepository(ctx, cfg.DatabaseURL, logger)
+	if err != nil {
+		log.Fatalf("error initializing stock repository: %v", err)
+	}
 	apiClient := stockapi.NewStockAPIClient(cfg.ExternalAPIURL, cfg.AuthToken, logger)
 
-	// Initialize services with logger
-	stockService := services.NewStockService(stockRepo, apiClient, logger)
-	analysisService := analysis.NewAnalysisService(stockRepo, logger)
-
-	// Initialize application
-	app := application.NewStockApplication(stockService, analysisService)
+	// Initialize application with WebSocket handler
+	app := application.NewStockApplication(stockRepo, apiClient, logger)
 
 	// Initialize and run server
 	server := api.NewServer(cfg, app)

@@ -78,3 +78,11 @@ func (s *StockService) GetAllStocks(ctx context.Context) ([]*stock.Stock, error)
 	}
 	return stocks, nil
 }
+
+func (s *StockService) GetStockBySymbol(ctx context.Context, symbol string) (*stock.Stock, error) {
+	stock, err := s.repo.FindByTicker(ctx, symbol)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching stock by symbol: %w", err)
+	}
+	return stock, nil
+}

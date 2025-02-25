@@ -3,8 +3,16 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"stockapi/internal/application/dto"
 	"stockapi/internal/application/services"
 	"stockapi/internal/domain/stock"
+
+	"github.com/gorilla/mux"
+)
+
+const (
+	ContentType     = "Content-Type"
+	ApplicationJSON = "application/json"
 )
 
 type StockHandler struct {
@@ -30,6 +38,17 @@ func (h *StockHandler) HandleStocks() http.HandlerFunc {
 	}
 }
 
+func (h *StockHandler) HandleStockDetail() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			h.getStockDetail(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}
+}
+
 func (h *StockHandler) getStocks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -48,12 +67,18 @@ func (h *StockHandler) getStocks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(stocks)
+	// Convertir entidades a DTOs
+	stockResponses := make([]dto.StockResponse, len(stocks))
+	for i, s := range stocks {
+		stockResponses[i] = dto.ToStockResponse(s)
+	}
+
+	w.Header().Set(ContentType, ApplicationJSON)
+	json.NewEncoder(w).Encode(stockResponses)
 }
 
 func (h *StockHandler) syncStocks(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(ContentType, ApplicationJSON)
 
 	ctx := r.Context()
 	if err := h.stockService.SyncStocksFromAPI(ctx); err != nil {
@@ -66,4 +91,26 @@ func (h *StockHandler) syncStocks(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{"message": "Stocks synchronized successfully"}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+}
+
+func (h *StockHandler) getStockDetail(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	symbol := vars["symbol"]
+
+	if symbol == "" {
+		http.Error(w, "Symbol is required", http.StatusBadRequest)
+		return
+	}
+
+	stock, err := h.stockService.GetStockBySymbol(r.Context(), symbol)
+	if err != nil {
+		http.Error(w, "Error fetching stock detail: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Convert entity to DTO
+	stockResponse := dto.ToStockResponse(stock)
+
+	w.Header().Set(ContentType, ApplicationJSON)
+	json.NewEncoder(w).Encode(stockResponse)
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"stockapi/internal/application/dto"
 	"stockapi/internal/application/services"
 )
 
@@ -30,7 +31,12 @@ func (h *AnalysisHandler) HandleAnalysis() http.HandlerFunc {
 			return
 		}
 
+		analysisResponses := make([]dto.AnalysisResponse, len(analyses))
+		for i, analysis := range analyses {
+			analysisResponses[i] = dto.ToAnalysisResponse(analysis)
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(analyses)
+		json.NewEncoder(w).Encode(analysisResponses)
 	}
 }

@@ -36,4 +36,6 @@ func (l *StockLogger) Error(ctx context.Context, msg string, fields map[string]i
 	l.Log(ctx, shared.ERROR, msg, fields)
 }
 
-// Implement the rest of the Logger interface methods...
+func (l *StockLogger) Warn(ctx context.Context, msg string, fields map[string]interface{}) {
+	l.Log(ctx, shared.WARNING, msg, fields)
+}

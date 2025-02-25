@@ -6,7 +6,6 @@ import (
 	"stockapi/internal/domain/shared"
 	"stockapi/internal/domain/stock"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -36,9 +35,9 @@ func (r *StockRepository) Save(ctx context.Context, stock *stock.Stock) error {
 			"ticker": stock.Ticker,
 			"id":     stock.ID,
 		})
-        
-        return r.Update(ctx, stock)
-    }
+
+		return r.Update(ctx, stock)
+	}
 
 	// If it doesn't exist or there was an error searching (not found), we proceed with the insertion
 	r.logger.Debug(ctx, "Inserting new stock", map[string]interface{}{
@@ -46,7 +45,7 @@ func (r *StockRepository) Save(ctx context.Context, stock *stock.Stock) error {
 		"id":     stock.ID,
 	})
 
-    query := `
+	query := `
         INSERT INTO stocks (
             id, ticker, target_from_amount, target_from_currency,
             target_to_amount, target_to_currency, company,
@@ -54,30 +53,30 @@ func (r *StockRepository) Save(ctx context.Context, stock *stock.Stock) error {
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     `
 
-    _, err = r.db.Exec(ctx, query,
-        stock.ID,
-        stock.Ticker,
-        stock.Target.From.Amount,
-        stock.Target.From.Currency,
-        stock.Target.To.Amount,
-        stock.Target.To.Currency,
-        stock.Company,
-        stock.Action,
-        stock.Brokerage,
-        stock.Rating.From,
-        stock.Rating.To,
-        stock.Time,
-    )
+	_, err = r.db.Exec(ctx, query,
+		stock.ID,
+		stock.Ticker,
+		stock.Target.From.Amount,
+		stock.Target.From.Currency,
+		stock.Target.To.Amount,
+		stock.Target.To.Currency,
+		stock.Company,
+		stock.Action,
+		stock.Brokerage,
+		stock.Rating.From,
+		stock.Rating.To,
+		stock.Time,
+	)
 
-    if err != nil {
-        return fmt.Errorf("error saving stock: %w", err)
-    }
+	if err != nil {
+		return fmt.Errorf("error saving stock: %w", err)
+	}
 
 	r.logger.Info(ctx, "Stock saved successfully", map[string]interface{}{
 		"ticker": stock.Ticker,
 		"id":     stock.ID,
 	})
-    return nil
+	return nil
 }
 
 func (r *StockRepository) FindAll(ctx context.Context) ([]*stock.Stock, error) {
@@ -119,17 +118,6 @@ func (r *StockRepository) FindAll(ctx context.Context) ([]*stock.Stock, error) {
 	}
 
 	return stocks, nil
-}
-
-func (r *StockRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	query := `DELETE FROM stocks WHERE id = $1`
-
-	_, err := r.db.Exec(ctx, query, id)
-	if err != nil {
-		return fmt.Errorf("error deleting stock: %w", err)
-	}
-
-	return nil
 }
 
 func (r *StockRepository) FindByTicker(ctx context.Context, ticker string) (*stock.Stock, error) {
