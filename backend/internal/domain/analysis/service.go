@@ -216,14 +216,45 @@ func (s *AnalysisService) hasRequiredData(stk *stock.Stock) bool {
 }
 
 func isValidRatingTransition(from, to stock.Rating) bool {
-	// No allow drastic changes from Buy to Sell without passing through Hold
-	if from == stock.Buy && to == stock.Sell {
-		return false
+	// Map of rating levels to determine the magnitude of the change
+	ratingLevels := map[stock.Rating]int{
+		// Level 4: Very Positive
+		stock.StrongBuy:  4,
+		stock.Outperform: 4,
+		stock.Overweight: 4,
+
+		// Level 3: Positive
+		stock.Buy:      3,
+		stock.Positive: 3,
+
+		// Level 2: Neutral
+		stock.Hold:          2,
+		stock.Neutral:       2,
+		stock.EqualWeight:   2,
+		stock.MarketPerform: 2,
+
+		// Level 1: Negative
+		stock.Underweight:  1,
+		stock.Underperform: 1,
+		stock.Sell:         1,
 	}
-	if from == stock.Sell && to == stock.Buy {
-		return false
+
+	fromLevel := ratingLevels[from]
+	toLevel := ratingLevels[to]
+
+	// Calculates the absolute difference between levels
+	levelDifference := abs(fromLevel - toLevel)
+
+	// Does not allow changes of more than one level in a single update
+	return levelDifference <= 1
+}
+
+// Auxiliary function to calculate the absolute value
+func abs(x int) int {
+	if x < 0 {
+		return -x
 	}
-	return true
+	return x
 }
 
 func calculatePriceTargetGrowth(s *stock.Stock) float64 {
@@ -232,12 +263,36 @@ func calculatePriceTargetGrowth(s *stock.Stock) float64 {
 
 func calculateRatingImpact(s *stock.Stock) float64 {
 	ratingScores := map[stock.Rating]float64{
-		stock.Buy:     1.0,
-		stock.Hold:    0.5,
-		stock.Neutral: 0.3,
-		stock.Sell:    0.0,
+		// Very Positive Recommendations (0.8 - 1.0)
+		stock.StrongBuy:  1.0,
+		stock.Outperform: 0.9,
+		stock.Overweight: 0.8,
+
+		// Positive Recommendations (0.6 - 0.7)
+		stock.Buy:      0.7,
+		stock.Positive: 0.6,
+
+		// Neutral Recommendations (0.3 - 0.5)
+		stock.Hold:          0.5,
+		stock.Neutral:       0.4,
+		stock.EqualWeight:   0.4,
+		stock.MarketPerform: 0.3,
+
+		// Negative Recommendations (0.0 - 0.2)
+		stock.Underweight:  0.2,
+		stock.Underperform: 0.1,
+		stock.Sell:         0.0,
 	}
-	return ratingScores[s.Rating.To] - ratingScores[s.Rating.From]
+
+	// If any rating is not in the map, we use a neutral value by default
+	fromScore, fromExists := ratingScores[s.Rating.From]
+	toScore, toExists := ratingScores[s.Rating.To]
+
+	if !fromExists || !toExists {
+		return 0.0 // Return 0 if any rating is not mapped
+	}
+
+	return toScore - fromScore
 }
 
 func getPrestigeScore(brokerage string) float64 {

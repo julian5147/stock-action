@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStockStore } from "../stores/stocks";
 import { RouterLink } from "vue-router";
+import ErrorMessage from "../components/common/ErrorMessage.vue";
+import LoadingSpinner from "../components/common/LoadingSpinner.vue";
+import PriceChange from "../components/common/PriceChange.vue";
+import { useStockStore } from "../stores/stocks";
 
 const stockStore = useStockStore();
 
@@ -24,25 +27,12 @@ onMounted(async () => {
     <div class="mt-8 flow-root">
       <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-          <div
-            v-if="stockStore.loading"
-            class="flex justify-center items-center py-10"
-          >
-            <div
-              class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"
-            ></div>
-          </div>
+          <LoadingSpinner v-if="stockStore.loading" />
 
-          <div v-else-if="stockStore.error" class="rounded-lg bg-red-50 p-4">
-            <div class="flex">
-              <div class="ml-3">
-                <h3 class="text-sm font-medium text-red-800">Error</h3>
-                <div class="mt-2 text-sm text-red-700">
-                  <p>{{ stockStore.error }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ErrorMessage
+            v-else-if="stockStore.error"
+            :message="stockStore.error"
+          />
 
           <table v-else class="min-w-full divide-y divide-gray-300">
             <thead>
@@ -51,36 +41,36 @@ onMounted(async () => {
                   scope="col"
                   class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
                 >
-                  Símbolo
+                  Ticker
+                </th>
+                <th
+                  scope="col"
+                  class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                >
+                  Company
+                </th>
+                <th
+                  scope="col"
+                  class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                >
+                  Price
                 </th>
                 <th
                   scope="col"
                   class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
                 >
-                  Nombre
+                  Change
                 </th>
                 <th
                   scope="col"
-                  class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
+                  class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                 >
-                  Precio
-                </th>
-                <th
-                  scope="col"
-                  class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
-                >
-                  Cambio
-                </th>
-                <th
-                  scope="col"
-                  class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900"
-                >
-                  Volumen
+                  Broker
                 </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-              <tr v-for="stock in stockStore.sortedStocks" :key="stock.ID">
+              <tr v-for="stock in stockStore.sortedStocks" :key="stock.id">
                 <td
                   class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0"
                 >
@@ -94,32 +84,24 @@ onMounted(async () => {
                     {{ stock.ticker }}
                   </RouterLink>
                 </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                <td
+                  class="whitespace-nowrap px-3 py-4 text-sm text-left text-gray-500"
+                >
                   {{ stock.company }}
                 </td>
                 <td
-                  class="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500"
+                  class="whitespace-nowrap px-3 py-4 text-sm text-left text-gray-500"
                 >
                   ${{ stock.target_to.toFixed(2) }}
                 </td>
-                <td
-                  class="whitespace-nowrap px-3 py-4 text-sm text-right"
-                  :class="
-                    stock.target_to >= stock.target_from
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                  "
-                >
-                  {{
-                    (
-                      ((stock.target_to - stock.target_from) /
-                        stock.target_from) *
-                      100
-                    ).toFixed(2)
-                  }}%
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-right">
+                  <PriceChange
+                    :from-value="stock.target_from"
+                    :to-value="stock.target_to"
+                  />
                 </td>
                 <td
-                  class="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500"
+                  class="whitespace-nowrap px-3 py-4 text-sm text-left text-gray-500"
                 >
                   {{ stock.brokerage }}
                 </td>

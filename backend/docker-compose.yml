@@ -1,19 +1,20 @@
 services:
   crdb:
     image: cockroachdb/cockroach:latest
+    restart: always
     ports:
-      - "26257:26257"
+      - ${DB_PORT}:26257
       - "8080:8080"
     command: start-single-node --insecure
     volumes:
-      - "${PWD}/cockroach-data:/cockroach/cockroach-data"
+      - "./cockroach-data:/cockroach/cockroach-data"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 5
     environment:
-      COCKROACH_DATABASE: stocksdb
+      COCKROACH_DATABASE: ${DB_NAME}
 
   backend:
     restart: unless-stopped
@@ -36,6 +37,7 @@ services:
             - .air.toml
             - .gitignore
             - .dockerignore
+            - cockroach-data/
     ports:
       - "${PORT:-8000}:${PORT:-8000}"
     depends_on:

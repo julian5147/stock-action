@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterView, RouterLink } from "vue-router";
+import { RouterLink, RouterView } from "vue-router";
 import { useStockStore } from "./stores/stocks";
 
 const stockStore = useStockStore();
@@ -24,7 +24,7 @@ const stockStore = useStockStore();
                   'border-b-2 border-indigo-500': $route.name === 'home',
                 }"
               >
-                Inicio
+                Stocks disponibles
               </RouterLink>
               <RouterLink
                 to="/recommended"
@@ -33,7 +33,7 @@ const stockStore = useStockStore();
                   'border-b-2 border-indigo-500': $route.name === 'recommended',
                 }"
               >
-                Recomendadas
+                Recomendaciones de inversión
               </RouterLink>
             </div>
           </div>

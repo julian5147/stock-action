@@ -99,22 +99,71 @@ func (s *Stock) CalculateInvestmentScore() float64 {
 	// Factor 3: Rating Improvement (15%)
 	var ratingImprovementScore float64
 	if s.Rating.From != s.Rating.To {
-		if s.Rating.To == Buy && (s.Rating.From == Hold || s.Rating.From == Sell) {
-			ratingImprovementScore = 0.15
-		} else if s.Rating.To == Hold && s.Rating.From == Sell {
-			ratingImprovementScore = 0.1
+		// Define the rating levels to calculate the improvement
+		ratingLevels := map[Rating]int{
+			// Very Positive (level 4)
+			StrongBuy:  4,
+			Outperform: 4,
+			Overweight: 4,
+
+			// Positive (level 3)
+			Buy:      3,
+			Positive: 3,
+
+			// Neutral (level 2)
+			Hold:          2,
+			Neutral:       2,
+			EqualWeight:   2,
+			MarketPerform: 2,
+
+			// Negative (level 1)
+			Underweight:  1,
+			Underperform: 1,
+			Sell:         1,
+		}
+
+		fromLevel := ratingLevels[s.Rating.From]
+		toLevel := ratingLevels[s.Rating.To]
+
+		// Calculate the improvement based on the levels
+		levelImprovement := toLevel - fromLevel
+
+		switch {
+		case levelImprovement >= 3:
+			ratingImprovementScore = 0.15 // Maximum improvement (e.g., from Sell to StrongBuy)
+		case levelImprovement == 2:
+			ratingImprovementScore = 0.12 // Significant improvement (e.g., from Sell to Buy)
+		case levelImprovement == 1:
+			ratingImprovementScore = 0.08 // Moderate improvement (e.g., from Sell to Hold)
+		case levelImprovement < 0:
+			ratingImprovementScore = 0.0 // No improvement, it's a downgrade
 		}
 	}
 
 	// Factor 4: Broker Reputation (20%)
 	var brokerageScore float64
 	switch s.Brokerage {
-	case "Goldman Sachs", "Morgan Stanley", "JP Morgan":
-		brokerageScore = 0.2
-	case "Bank of America", "Citigroup":
+	// Tier S - Global brokers of maximum prestige
+	case "The Goldman Sachs Group", "Morgan Stanley", "JPMorgan Chase & Co.", "Bank of America", "Citigroup":
+		brokerageScore = 0.20
+
+	// Tier A - High prestige brokers
+	case "Wells Fargo & Company", "UBS Group", "Deutsche Bank Aktiengesellschaft",
+		"Barclays", "Royal Bank of Canada", "HSBC", "BNP Paribas",
+		"BMO Capital Markets", "Mizuho", "Scotiabank":
 		brokerageScore = 0.15
+
+	// Tier B - Established and specialized brokers
+	case "Jefferies Financial Group", "Raymond James", "Evercore ISI",
+		"Piper Sandler", "TD Cowen", "Oppenheimer", "Stifel Nicolaus",
+		"Keefe, Bruyette & Woods", "Cantor Fitzgerald", "Truist Financial",
+		"Wedbush", "Robert W. Baird", "Sanford C. Bernstein", "CIBC",
+		"Macquarie", "Guggenheim", "TD Securities", "Susquehanna":
+		brokerageScore = 0.10
+
+	// Tier C - Boutique and regional brokers (y cualquier otro broker no listado)
 	default:
-		brokerageScore = 0.1
+		brokerageScore = 0.05
 	}
 
 	// Factor 5: Recommendation Timeliness (10%)

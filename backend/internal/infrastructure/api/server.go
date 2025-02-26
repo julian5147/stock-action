@@ -56,7 +56,8 @@ func (s *Server) setupRoutes() {
 
 	// Apply global middleware
 	s.router.Use(middleware.Logging)
-	s.router.Use(middleware.CORS)
+	s.router.Use(middleware.CORS(s.config))
+	s.router.Use(middleware.RateLimit)
 }
 
 func (s *Server) Run() error {

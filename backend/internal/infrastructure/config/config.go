@@ -11,6 +11,7 @@ type Config struct {
 	DatabaseURL    string
 	ExternalAPIURL string
 	AuthToken      string
+	AllowedOrigin  string
 }
 
 func Load() (*Config, error) {
@@ -21,6 +22,7 @@ func Load() (*Config, error) {
 		DatabaseURL:    os.Getenv("DATABASE_URL"),
 		ExternalAPIURL: os.Getenv("EXTERNAL_API_URL"),
 		AuthToken:      os.Getenv("AUTH_TOKEN"),
+		AllowedOrigin:  getEnvOrDefault("ALLOWED_ORIGIN", "*"),
 	}, nil
 }
 

@@ -6,17 +6,17 @@ const router = createRouter({
     {
       path: "/",
       name: "home",
-      component: () => import("../views/StockDashboard.vue"),
+      component: () => import("@/views/StockDashboard.vue"),
     },
     {
       path: "/recommended",
       name: "recommended",
-      component: () => import("../views/RecommendedStocks.vue"),
+      component: () => import("@/views/RecommendedStocks.vue"),
     },
     {
       path: "/stock/:symbol",
       name: "stock-detail",
-      component: () => import("../views/StockDetail.vue"),
+      component: () => import("@/views/StockDetail.vue"),
     },
   ],
 });

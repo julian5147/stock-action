@@ -1,0 +1,6 @@
+.git
+.gitignore
+cockroach-data/
+tmp/
+.env
+README.md 
