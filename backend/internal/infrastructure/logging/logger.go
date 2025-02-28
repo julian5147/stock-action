@@ -28,10 +28,6 @@ func (l *StockLogger) Debug(ctx context.Context, msg string, fields map[string]i
 	l.Log(ctx, shared.DEBUG, msg, fields)
 }
 
-func (l *StockLogger) Warning(ctx context.Context, msg string, fields map[string]interface{}) {
-	l.Log(ctx, shared.WARNING, msg, fields)
-}
-
 func (l *StockLogger) Error(ctx context.Context, msg string, fields map[string]interface{}) {
 	l.Log(ctx, shared.ERROR, msg, fields)
 }

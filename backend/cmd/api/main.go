@@ -14,6 +14,7 @@ import (
 	"stockapi/internal/infrastructure/external/stockapi"
 	"stockapi/internal/infrastructure/logging"
 	"stockapi/internal/infrastructure/persistence/cockroach"
+	"stockapi/internal/domain/shared"
 )
 
 func main() {
@@ -34,6 +35,8 @@ func main() {
 	// Initialize logger
 	logger := logging.NewStockLogger()
 
+	domainLogger := shared.NewDomainLogger(logger)
+
 	// Initialize repositories and clients with logger
 	stockRepo, err := cockroach.NewStockRepository(ctx, cfg.DatabaseURL, logger)
 	if err != nil {
@@ -42,7 +45,7 @@ func main() {
 	apiClient := stockapi.NewStockAPIClient(cfg.ExternalAPIURL, cfg.AuthToken, logger)
 
 	// Initialize application with WebSocket handler
-	app := application.NewStockApplication(stockRepo, apiClient, logger)
+	app := application.NewStockApplication(stockRepo, apiClient, domainLogger)
 
 	// Initialize and run server
 	server := api.NewServer(cfg, app)

@@ -15,7 +15,7 @@ type StockApplication struct {
 func NewStockApplication(
 	stockRepo stock.Repository,
 	stockAPI stock.StockAPIPort,
-	logger shared.Logger,
+	logger *shared.DomainLogger,
 ) *StockApplication {
 	analysisService := analysis.NewAnalysisService(stockRepo, logger)
 	return &StockApplication{

@@ -10,10 +10,10 @@ import (
 
 type AnalysisService struct {
 	stockRepo stock.Repository
-	logger    shared.Logger
+	logger    *shared.DomainLogger
 }
 
-func NewAnalysisService(repo stock.Repository, logger shared.Logger) *AnalysisService {
+func NewAnalysisService(repo stock.Repository, logger *shared.DomainLogger) *AnalysisService {
 	return &AnalysisService{
 		stockRepo: repo,
 		logger:    logger,
@@ -123,8 +123,8 @@ func (s *AnalysisService) AnalyzeStocks(ctx context.Context) ([]StockAnalysis, e
 	start := time.Now()
 	stocks, err := s.stockRepo.FindAll(ctx)
 	if err != nil {
-		s.logger.Error(ctx, "Error fetching stocks for analysis", map[string]interface{}{
-			"error": err.Error(),
+		s.logger.LogError(ctx, err, map[string]interface{}{
+			"operation": "fetching stocks for analysis",
 		})
 		return nil, err
 	}
@@ -137,18 +137,18 @@ func (s *AnalysisService) AnalyzeStocks(ctx context.Context) ([]StockAnalysis, e
 	for _, stk := range stocks {
 		// Check if data is not stale
 		if time.Since(stk.Time) > 24*time.Hour {
-			s.logger.Warn(ctx, "Stale data detected", map[string]interface{}{
-				"stock_id":    stk.ID,
-				"last_update": stk.Time,
-			})
+			// s.logger.Warn(ctx, "Stale data detected", map[string]interface{}{
+			// 	"stock_id":    stk.ID,
+			// 	"last_update": stk.Time,
+			// })
 			continue
 		}
 
 		analysis, err := s.analyzeStock(ctx, stk)
 		if err != nil {
-			s.logger.Error(ctx, "Error analyzing stock", map[string]interface{}{
-				"stock_id": stk.ID,
-				"error":    err.Error(),
+			s.logger.LogError(ctx, err, map[string]interface{}{
+				"operation": "analyzing stock",
+				"stock_id":  stk.ID,
 			})
 			continue
 		}
@@ -174,6 +174,7 @@ func (s *AnalysisService) AnalyzeStocks(ctx context.Context) ([]StockAnalysis, e
 
 func (s *AnalysisService) analyzeStock(ctx context.Context, stk *stock.Stock) (StockAnalysis, error) {
 	// Validate that we have enough data for analysis
+	start := time.Now()
 	if !s.hasRequiredData(stk) {
 		return StockAnalysis{}, stock.ErrAnalysisNotPossible
 	}
@@ -204,6 +205,7 @@ func (s *AnalysisService) analyzeStock(ctx context.Context, stk *stock.Stock) (S
 		LastUpdated:    time.Now(),
 	}
 
+	s.logger.LogStockAnalysis(ctx, stk.ID.String(), analysis.Score, time.Since(start))
 	return analysis, nil
 }
 

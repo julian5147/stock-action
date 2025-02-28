@@ -18,7 +18,6 @@ type Logger interface {
 	Log(ctx context.Context, level LogLevel, msg string, fields map[string]interface{})
 	Debug(ctx context.Context, msg string, fields map[string]interface{})
 	Info(ctx context.Context, msg string, fields map[string]interface{})
-	Warning(ctx context.Context, msg string, fields map[string]interface{})
 	Error(ctx context.Context, msg string, fields map[string]interface{})
 	Warn(ctx context.Context, msg string, fields map[string]interface{})
 }
@@ -57,8 +56,8 @@ func (l *DomainLogger) Info(ctx context.Context, msg string, fields map[string]i
 	l.logger.Info(ctx, msg, fields)
 }
 
-func (l *DomainLogger) Warning(ctx context.Context, msg string, fields map[string]interface{}) {
-	l.logger.Warning(ctx, msg, fields)
+func (l *DomainLogger) Warn(ctx context.Context, msg string, fields map[string]interface{}) {
+	l.logger.Warn(ctx, msg, fields)
 }
 
 func (l *DomainLogger) Error(ctx context.Context, msg string, fields map[string]interface{}) {
