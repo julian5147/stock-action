@@ -36,13 +36,6 @@ func NewServer(cfg *config.Config, app *application.StockApplication) *Server {
 	return server
 }
 
-func (s *Server) UpdateApplication(app *application.StockApplication) {
-	s.app = app
-	s.stockHandler = handlers.NewStockHandler(app.StockService)
-	s.analysisHandler = handlers.NewAnalysisHandler(app.AnalysisService)
-	s.setupRoutes()
-}
-
 func (s *Server) setupRoutes() {
 	// API routes
 	s.router.HandleFunc("/api/stocks", s.stockHandler.HandleStocks()).

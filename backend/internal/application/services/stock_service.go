@@ -57,20 +57,6 @@ func (s *StockService) SyncStocksFromAPI(ctx context.Context) error {
 	return nil
 }
 
-func (s *StockService) GetRecommendedStocks(ctx context.Context) ([]*stock.Stock, error) {
-	stocks, err := s.repo.FindAll(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching stocks: %w", err)
-	}
-
-	// Sort stocks by investment score
-	sort.Slice(stocks, func(i, j int) bool {
-		return stocks[i].CalculateInvestmentScore() > stocks[j].CalculateInvestmentScore()
-	})
-
-	return stocks, nil
-}
-
 func (s *StockService) GetAllStocks(ctx context.Context) ([]*stock.Stock, error) {
 	stocks, err := s.repo.FindAll(ctx)
 	if err != nil {

@@ -52,15 +52,10 @@ func (h *StockHandler) HandleStockDetail() http.HandlerFunc {
 func (h *StockHandler) getStocks(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	recommended := r.URL.Query().Get("recommended")
 	var stocks []*stock.Stock
 	var err error
 
-	if recommended == "true" {
-		stocks, err = h.stockService.GetRecommendedStocks(ctx)
-	} else {
-		stocks, err = h.stockService.GetAllStocks(ctx)
-	}
+	stocks, err = h.stockService.GetAllStocks(ctx)
 
 	if err != nil {
 		http.Error(w, "Error fetching stocks: "+err.Error(), http.StatusInternalServerError)

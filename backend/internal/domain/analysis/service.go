@@ -137,10 +137,10 @@ func (s *AnalysisService) AnalyzeStocks(ctx context.Context) ([]StockAnalysis, e
 	for _, stk := range stocks {
 		// Check if data is not stale
 		if time.Since(stk.Time) > 24*time.Hour {
-			// s.logger.Warn(ctx, "Stale data detected", map[string]interface{}{
-			// 	"stock_id":    stk.ID,
-			// 	"last_update": stk.Time,
-			// })
+			s.logger.Warn(ctx, "Stale data detected", map[string]interface{}{
+				"stock_id":    stk.ID,
+				"last_update": stk.Time,
+			})
 			continue
 		}
 
@@ -179,8 +179,6 @@ func (s *AnalysisService) analyzeStock(ctx context.Context, stk *stock.Stock) (S
 		return StockAnalysis{}, stock.ErrAnalysisNotPossible
 	}
 
-	score := stk.CalculateInvestmentScore()
-
 	// Validate rating transition
 	if !isValidRatingTransition(stk.Rating.From, stk.Rating.To) {
 		return StockAnalysis{}, stock.ErrInvalidRatingTransition
@@ -190,6 +188,8 @@ func (s *AnalysisService) analyzeStock(ctx context.Context, stk *stock.Stock) (S
 	if stk.Target.From.Amount == stk.Target.To.Amount {
 		return StockAnalysis{}, stock.ErrInvalidPriceTarget
 	}
+
+	score := stk.CalculateInvestmentScore()
 
 	indicators := map[string]float64{
 		"price_target_growth": calculatePriceTargetGrowth(stk),
